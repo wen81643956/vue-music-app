@@ -104,8 +104,9 @@
         }, this.interval)
       }
     },
-    beforeDestory () {
+    destory () {
       window.removeEventListener('resize', this._resizeWindow)
+      clearTimeout(this.timer)
     }
   }
 </script>
