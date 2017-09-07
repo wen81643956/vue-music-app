@@ -59,6 +59,7 @@
     methods: {
       _getRecommond () {
         getRecommend().then((res) => {
+          console.log(111)
           if (res.code === ERR_OK) {
             for (let item of res.data.slider) {
               item.picUrl = item.picUrl.replace('http', 'https')
