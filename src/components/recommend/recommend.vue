@@ -60,6 +60,9 @@
       _getRecommond () {
         getRecommend().then((res) => {
           if (res.code === ERR_OK) {
+            for (let item of res.data.slider) {
+              item.picUrl = item.picUrl.replace('http', 'https')
+            }
             this.recommends = res.data.slider
           }
         })
