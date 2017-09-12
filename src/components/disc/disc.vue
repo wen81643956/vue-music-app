@@ -1,14 +1,22 @@
 <template>
   <transition name="slide">
-    <music-list :title="title" :bg-image="bgImage"></music-list>
+    <music-list :title="title" :bg-image="bgImage" :songs="songs"></music-list>
   </transition>
 </template>
 
 <script type="text/ecmascript-6">
   import MusicList from 'components/music-list/music-list'
   import { mapGetters } from 'vuex'
+  import { getSongList } from 'api/recommend'
+  import { createSong } from 'common/js/song'
+  import { ERR_OK } from 'api/config'
 
   export default {
+    data () {
+      return {
+        songs: []
+      }
+    },
     computed: {
       title () {
         return this.disc.dissname
@@ -22,6 +30,32 @@
     },
     components: {
       MusicList
+    },
+    created () {
+      this._getSongList()
+    },
+    methods: {
+      _getSongList () {
+        if (!this.disc.dissid) {
+          this.$router.push('/recommend')
+          return
+        }
+        getSongList(this.disc.dissid).then((res) => {
+          if (res.code === ERR_OK) {
+            this.songs = this._nromalizeSongs(res.cdlist[0].songlist)
+          }
+        })
+      },
+      _nromalizeSongs (list) {
+        let ret = []
+        list.forEach(item => {
+          let musicData = item
+          if (musicData.songid && musicData.albumid) {
+            ret.push(createSong(musicData))
+          }
+        })
+        return ret
+      }
     }
   }
 </script>

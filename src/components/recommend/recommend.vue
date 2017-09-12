@@ -63,7 +63,7 @@
     methods: {
       selectItem (item) {
         this.$router.push({
-          path: `recommend/:${item.id}`
+          path: `recommend/${item.dissid}`
         })
         this.setDisc(item)
       },
