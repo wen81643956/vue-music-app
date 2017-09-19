@@ -2,10 +2,12 @@
   <scroll class="suggest"
           :data="result"
           :pullup="pullup"
+          :beforeScroll="beforeScroll"
           @scrollToEnd="searchMore"
+          @beforeScroll="listScroll"
           ref="suggest">
     <ul class="suggest-list">
-      <li class="suggest-item" v-for="item in result">
+      <li class="suggest-item" v-for="item in result" @click="selectItem(item)">
         <div class="icon">
           <i :class="getIconCls(item)"></i>
         </div>
@@ -15,6 +17,9 @@
       </li>
       <loading v-show="hasMore" title=" "></loading>
     </ul>
+    <div class="no-result-wrapper" v-show="!hasMore || !result.length">
+      <no-result title="抱歉，暂无搜索结果"></no-result>
+    </div>
   </scroll>
 </template>
 
@@ -23,7 +28,10 @@
   import { ERR_OK } from 'api/config'
   import { createSong } from 'common/js/song'
   import Scroll from 'base/scroll/scroll'
+  import NoResult from 'base/no-result/no-result'
   import Loading from 'base/loading/loading'
+  import Singer from 'common/js/singer'
+  import { mapMutations, mapActions } from 'vuex'
 
   const TYPE_SINGER = 'singer'
   const perpage = 20
@@ -44,12 +52,14 @@
         page: 1,
         result: [],
         pullup: true,
-        hasMore: true
+        hasMore: true,
+        beforeScroll: true
       }
     },
     components: {
       Scroll,
-      Loading
+      Loading,
+      NoResult
     },
     watch: {
       query() {
@@ -57,6 +67,24 @@
       }
     },
     methods: {
+      listScroll () {
+        this.$emit('listScroll')
+      },
+      selectItem (item) {
+        if (item.type === TYPE_SINGER) {
+          const singer = new Singer({
+            id: item.singermid,
+            name: item.singername
+          })
+          this.$router.push({
+            path: `/search/${singer.id}`
+          })
+          this.setSinger(singer)
+        } else {
+          this.insertSong(item)
+        }
+        this.$emit('select')
+      },
       searchMore () {
         if (!this.hasMore) {
           return
@@ -85,12 +113,14 @@
       },
       _checkMore (data) {
         const song = data.song
-        if (!song.list.length || (song.curnum + song.curpage * 20) > song.totalnum) {
+        if (!song.list.length || (song.curnum + song.curpage * 20) >= song.totalnum) {
           this.hasMore = false
         }
       },
       _search () {
+        this.page = 1
         this.hasMore = true
+        this.$refs.suggest.scrollTo(0, 0)
         search(this.query, this.page, this.showSinger, perpage).then((res) => {
           if (res.code === ERR_OK) {
             this.result = this._genResult(res.data)
@@ -116,7 +146,13 @@
           ret = ret.concat(this._normalizeSongs(data.song.list))
         }
         return ret
-      }
+      },
+      ...mapMutations({
+        setSinger: 'SET_SINGER'
+      }),
+      ...mapActions([
+        'insertSong'
+      ])
     }
   }
 </script>
