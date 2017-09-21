@@ -8,6 +8,7 @@ function findIndex (list, song) {
     return item.id === song.id
   })
 }
+
 export const selectPlay = ({commit, state}, {list, index}) => {
   commit(types.SET_SEQUENCE_LIST, list)
   if (state.mode === playMode.random) {
@@ -75,4 +76,26 @@ export const deleteSearchHistory = ({commit}, query) => {
 
 export const clearSearchHistory = ({commit}) => {
   commit(types.SET_SEARCH_HISTORY, clearSearch())
+}
+
+export const deleteSong = ({commit, state}, song) => {
+  let playlist = state.playList.slice()
+  let sequenceList = state.sequenceList.slice()
+  let currrntIndex = state.currentIndex
+  let pIndex = findIndex(playlist, song)
+  playlist.splice(pIndex, 1)
+  let sIndex = findIndex(sequenceList, song)
+  sequenceList.splice(sIndex, 1)
+  if (currrntIndex > pIndex || currrntIndex === playlist.length) {
+    currrntIndex--
+  }
+  commit(types.SET_PLAYLIST, playlist)
+  commit(types.SET_SEQUENCE_LIST, sequenceList)
+  commit(types.SET_CURRENT_INDEX, currrntIndex)
+
+  if (!playlist.length) {
+    commit(types.SET_PLAYING_STATE, false)
+  } else {
+    commit(types.SET_PLAYING_STATE, true)
+  }
 }
