@@ -4,9 +4,9 @@
       <div class="list-wrapper" @click.stop>
         <div class="list-header">
           <h1 class="title">
-            <i class="icon"></i>
-            <span class="text"></span>
-            <span class="clear"><i class="icon-clear"></i></span>
+            <i class="icon" :class="iconMode" @click="changeMode"></i>
+            <span class="text" v-text="modeText"></span>
+            <span class="clear" @click="showConfirm"><i class="icon-clear"></i></span>
           </h1>
         </div>
         <scroll class="list-content" :data="sequenceList" ref="listContent">
@@ -33,31 +33,33 @@
           <span>关闭</span>
         </div>
       </div>
+      <confirm ref="confirm" text="是否清空播放列表" confirmBtnText="清空" @confirm="confirmClear"></confirm>
     </div>
   </transition>
 </template>
 
 <script type="text/ecmascript-6">
-  import { mapGetters, mapMutations, mapActions } from 'vuex'
+  import { mapMutations, mapActions } from 'vuex'
   import { playMode } from 'common/js/config'
   import Scroll from 'base/scroll/scroll'
+  import Confirm from 'base/confirm/confirm'
+  import { playerMixin } from 'common/js/mixin'
 
   export default {
+    mixins: [playerMixin],
     data () {
       return {
         showFlag: false
       }
     },
     components: {
-      Scroll
+      Scroll,
+      Confirm
     },
     computed: {
-      ...mapGetters([
-        'sequenceList',
-        'currentSong',
-        'mode',
-        'playList'
-      ])
+      modeText () {
+        return this.mode === playMode.sequence ? '顺序播放' : this.mode === playMode.loop ? '单曲循环' : '随机播放'
+      }
     },
     watch: {
       currentSong (newSong, oldSong) {
@@ -68,6 +70,13 @@
       }
     },
     methods: {
+      confirmClear () {
+        this.deleteSongList()
+        this.hide()
+      },
+      showConfirm () {
+        this.$refs.confirm.show()
+      },
       deleteOne (item) {
         this.deleteSong(item)
         if (!this.playList.length) {
@@ -103,11 +112,11 @@
         this.$refs.listContent.scrollToElement(this.$refs.listItem[index], 300)
       },
       ...mapMutations({
-        setCurrentIndex: 'SET_CURRENT_INDEX',
-        setPlayingState: 'SET_PLAYING_STATE'
+        setCurrentIndex: 'SET_CURRENT_INDEX'
       }),
       ...mapActions([
-        'deleteSong'
+        'deleteSong',
+        'deleteSongList'
       ])
     }
   }
