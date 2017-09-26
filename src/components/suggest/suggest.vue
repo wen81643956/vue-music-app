@@ -17,7 +17,7 @@
       </li>
       <loading v-show="hasMore" title=" "></loading>
     </ul>
-    <div class="no-result-wrapper" v-show="!hasMore || !result.length">
+    <div class="no-result-wrapper" v-show="!hasMore && !result.length">
       <no-result title="抱歉，暂无搜索结果"></no-result>
     </div>
   </scroll>

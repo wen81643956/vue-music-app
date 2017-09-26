@@ -1,21 +1,87 @@
 <template>
   <transition name="slide">
-    <div class="add-song">
+    <div class="add-song" v-show="showFlag" @click.stop>
       <div class="header">
         <h1 class="title">添加歌曲到列表</h1>
         <div class="close">
-          <i class="icon-close"></i>
+          <i class="icon-close" @click="hide"></i>
         </div>
       </div>
-      <div class="search-box-wrapper"></div>
-      <div class="shortcut"></div>
-      <div class="search-result"></div>
+      <div class="search-box-wrapper">
+        <search-box ref="searchBox" @query="onQueryChange" placeholder="搜索歌曲"></search-box>
+      </div>
+      <div class="shortcut" v-show="!query">
+        <switches :switches="switches" :currentIndex="currentIndex" @switch="switchItem"></switches>
+        <div class="list-wrapper">
+          <scroll class="list-scroll" v-if="currentIndex === 0" :data="playHistory">
+            <div class="list-inner">
+              <songs-list :songs="playHistory" @select="selectSong"></songs-list>
+            </div>
+          </scroll>
+        </div>
+      </div>
+      <div class="search-result" v-show="query">
+        <suggest :query="query" :showSinger="showSinger" @select="saveSearch" @listScroll="blurInput"></suggest>
+      </div>
     </div>
   </transition>
 </template>
 
 <script type="text/ecmascript-6">
-  export default {}
+  import SearchBox from 'base/search-box/search-box'
+  import Suggest from 'components/suggest/suggest'
+  import Switches from 'base/switches/switches'
+  import Scroll from 'base/scroll/scroll'
+  import SongsList from 'base/songs-list/songs-list'
+  import { searchMixin } from 'common/js/mixin'
+  import { mapGetters, mapActions } from 'vuex'
+  import Song from 'common/js/song'
+
+  export default {
+    mixins: [searchMixin],
+    data () {
+      return {
+        showFlag: false,
+        showSinger: false,
+        currentIndex: 0,
+        switches: [
+          {name: '最近播放'},
+          {name: '搜索历史'}
+        ]
+      }
+    },
+    computed: {
+      ...mapGetters([
+        'playHistory'
+      ])
+    },
+    components: {
+      SearchBox,
+      Suggest,
+      Switches,
+      Scroll,
+      SongsList
+    },
+    methods: {
+      selectSong (item, index) {
+        if (index !== 0) {
+          this.insertSong(new Song(item))
+        }
+      },
+      show () {
+        this.showFlag = true
+      },
+      hide () {
+        this.showFlag = false
+      },
+      switchItem (index) {
+        this.currentIndex = index
+      },
+      ...mapActions([
+        'insertSong'
+      ])
+    }
+  }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
