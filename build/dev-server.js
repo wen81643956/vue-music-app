@@ -58,7 +58,7 @@ apiRoutes.get('/lyric', function (req, res) {
       }
       res.json(ret)
     }
-    res.json(reponse.data)
+    res.json(response.data)
   }).catch((e) => {
     console.log(e)
   })
